@@ -1,1 +1,1 @@
-https://flir.custhelp.com/app/answers/detail/a_id/3444/related/1
+## Flir AX5 to ros image message
