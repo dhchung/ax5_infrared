@@ -48,7 +48,7 @@ void Camera::set_camera(){
                std::cout<<"Unable to set pixel format, mate"<<std::endl;
         } else {
             Spinnaker::GenApi::CEnumEntryPtr node_pixel_format_mono14 = 
-                Spinnaker::GenApi::CEnumEntryPtr(node_pixel_format->GetEntryByName("Mono8"));
+                Spinnaker::GenApi::CEnumEntryPtr(node_pixel_format->GetEntryByName("Mono14"));
             if(!Spinnaker::GenApi::IsAvailable(node_pixel_format_mono14) ||
                !Spinnaker::GenApi::IsReadable(node_pixel_format_mono14)) {
                 std::cout<<"Unable to set pixel format into mono14, mate"<<std::endl;            
@@ -83,7 +83,7 @@ void Camera::set_camera(){
                std::cout<<"Unable to set CMOS bit depth, mate"<<std::endl;
         } else {
             Spinnaker::GenApi::CEnumEntryPtr node_bit_depth_14bit = 
-                Spinnaker::GenApi::CEnumEntryPtr(node_bit_depth->GetEntryByName("bit8bit"));
+                Spinnaker::GenApi::CEnumEntryPtr(node_bit_depth->GetEntryByName("bit14bit"));
             if(!Spinnaker::GenApi::IsAvailable(node_bit_depth_14bit) ||
                !Spinnaker::GenApi::IsReadable(node_bit_depth_14bit)) {
                 std::cout<<"Unable to set CMOS bit depth to 14bit, mate"<<std::endl;            
@@ -132,7 +132,7 @@ void Camera::set_camera(){
         camptr->BeginAcquisition();
         camera_ready = true;
     } else {
-        std::cout<<"Camera Fucked"<<std::endl;
+        std::cout<<"Camera not ready"<<std::endl;
         camera_ready = false;
     }
 }
@@ -151,18 +151,19 @@ cv::Mat Camera::acquire_image(){
             const size_t width = img->GetWidth();
             const size_t height = img->GetHeight();
             // std::cout<<width<<", "<<height<<std::endl;
-            image = cv::Mat(cv::Size(width, height), CV_8UC1, img->GetData());
+            image = cv::Mat(cv::Size(width, height), CV_16UC1, img->GetData());
 
-            // for(int i = 0; i < image.rows; ++i) {
-            //     for(int j = 0; j < image.cols; ++j) {
-            //         image.at<u_int16_t>(i,j) = image.at<u_int16_t>(i,j) * 4;                    
-            //     }
-            // }
+            for(int i = 0; i < image.rows; ++i) {
+                for(int j = 0; j < image.cols; ++j) {
+                    image.at<u_int16_t>(i,j) = image.at<u_int16_t>(i,j) * 4;                    
+                }
+            }
 
             std::cout<<(image.at<u_int16_t>(width/2, height/2)/4)*0.04 - 273.15<<std::endl;
 
-            cv::imshow("FUCK!", image);
+            cv::imshow("Infrared", image);
             cv::waitKey(1);
+
         }
     }
     else {
