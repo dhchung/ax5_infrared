@@ -33,7 +33,7 @@ int main(int argc, char ** argv) {
         cv::Mat acquired_image =  cam.acquire_image();
         header.seq = count;
         header.stamp = ros::Time::now();
-        img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, acquired_image);
+        img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::MONO16, acquired_image);
         img_bridge.toImageMsg(img);
 
         pub_img.publish(img);
