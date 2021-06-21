@@ -1,13 +1,18 @@
 #include "camera.h"
 
 
-Camera::Camera(){
+Camera::Camera(float min_temp_, float max_temp_): min_temp(min_temp_), max_temp(max_temp_){
     system = Spinnaker::System::GetInstance();
-
     cam_serial = "73400300";
-
     camera_ready = false;
     camptr = nullptr;
+
+    cal_ratio = (max_temp - min_temp)/16384.0f;
+    cal_bias = min_temp;
+
+    min_pixel = int((min_temp + 273.15f)*25); 
+    max_pixel = int((max_temp + 273.15f)*25); 
+
     set_camera();
 }
 Camera::~Camera(){
@@ -152,14 +157,28 @@ cv::Mat Camera::acquire_image(){
             const size_t height = img->GetHeight();
             // std::cout<<width<<", "<<height<<std::endl;
             image = cv::Mat(cv::Size(width, height), CV_16UC1, img->GetData());
+            std::cout<<"before :"<<(image.at<u_int16_t>(width/2, height/2))*0.04 - 273.15<<std::endl;
 
             for(int i = 0; i < image.rows; ++i) {
                 for(int j = 0; j < image.cols; ++j) {
-                    image.at<u_int16_t>(i,j) = image.at<u_int16_t>(i,j) * 4;                    
+                    // Range : -273.15 to 382.17
+                    int pixel_value = int(image.at<u_int16_t>(i,j));
+
+                    if(pixel_value <= min_pixel) {
+                        image.at<u_int16_t>(i,j) = 0;
+                    } else if(pixel_value >= max_pixel) {
+                        image.at<u_int16_t>(i,j) = 16383;
+                    } else {
+                        image.at<u_int16_t>(i,j) = int(float(image.at<u_int16_t>(i,j) - min_pixel) * (16383.0f/float(max_pixel - min_pixel)));
+                    }
+                    // float temp_value = float(pixel_value) * 0.04 - 273.15;
+
+                    image.at<u_int16_t>(i,j) = image.at<u_int16_t>(i,j) * 4;
                 }
             }
 
-            std::cout<<(image.at<u_int16_t>(width/2, height/2)/4)*0.04 - 273.15<<std::endl;
+
+            std::cout<<"after :"<<float(image.at<u_int16_t>(width/2, height/2)/4)*cal_ratio + cal_bias<<std::endl;
 
             cv::imshow("Infrared", image);
             cv::waitKey(1);

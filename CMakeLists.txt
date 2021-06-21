@@ -12,18 +12,21 @@ find_package(catkin REQUIRED COMPONENTS
 set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -Wall -g ${CMAKE_CXX_FLAGS}")
 
 find_package(OpenCV REQUIRED)
+find_package(jsoncpp REQUIRED)
 
 FIND_LIBRARY(SPINNAKER_LIBRARIES Spinnaker /opt/spinnaker/lib/)
 
 catkin_package()
 
 file(GLOB CLASS_SOURCES
-    "classes/*")
+    "classes/*"
+	"include/*")
 
 if(EXISTS "/opt/spinnaker")
 	include_directories(
 		/opt/spinnaker/include
 		classes/
+		include/
 		${catkin_INCLUDE_DIRS}
 		${OpenCV_INCLUDE_DIRS}
 	)
@@ -32,6 +35,7 @@ if(EXISTS "/opt/spinnaker")
 				   ${CLASS_SOURCES})
 
 	target_link_libraries(ifcamera_send_image
+						  jsoncpp
                           ${catkin_LIBRARIES} 
                           ${SPINNAKER_LIBRARIES} 
                           ${OpenCV_LIBRARIES})

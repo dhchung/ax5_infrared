@@ -5,13 +5,18 @@
 #include <cv_bridge/cv_bridge.h>
 
 #include "camera.h"
-
+#include "parameters_json.h"
 #include <chrono>
 
-int main(int argc, char ** argv) {
-    Camera cam;
-    ros::init(argc, argv, "ifcamera_send_image");
+Params params;
 
+int main(int argc, char ** argv) {
+    std::string param_dir = "/home/morin/dev/catkin_ws/src/ax5_infrared/include/parameters.json";
+    params.read_data(param_dir);
+
+    Camera cam(params.thermalParam.min_temp, params.thermalParam.max_temp);
+
+    ros::init(argc, argv, "ifcamera_send_image");
     ros::NodeHandle nh;
 
     cv_bridge::CvImage img_bridge;
@@ -21,7 +26,7 @@ int main(int argc, char ** argv) {
 
     ros::Publisher pub_img = nh.advertise<sensor_msgs::Image>("infrared_cam/image", 1);
 
-    ros::Rate loop_rate(10);
+    ros::Rate loop_rate(20);
     int count = 0;
     while(ros::ok()){
 
